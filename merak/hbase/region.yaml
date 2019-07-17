@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hbase-region-a
+spec:
+  clusterIP: None
+  selector:
+    app: hbase-region-a
+  ports:
+    - name: p1
+      port: 16020
+    - name: p2
+      port: 16030
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hbase-region-b
+spec:
+  clusterIP: None
+  selector:
+    app: hbase-region-b
+  ports:
+    - name: p1
+      port: 16020
+    - name: p2
+      port: 16030
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: hbase-region-a
+  name: hbase-region-a
+spec:
+  hostAliases:
+  - ip: "192.168.2.187"
+    hostnames:
+    - "k8s-master1"
+  containers:
+  - env:
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+    - name: HBASE_SERVER_TYPE
+      value: regionserver
+    - name: HDFS_PATH
+      value: mycluster
+    - name: ZOOKEEPER_SERVICE_LIST
+      value: zk-0.zk-headless.default.svc.cluster.local,zk-1.zk-headless.default.svc.cluster.local,zk-2.zk-headless.default.svc.cluster.local
+    - name: ZOOKEEPER_PORT
+      value: "2181"
+    - name: ZNODE_PARENT
+      value: hbase
+    image: 192.168.1.126/huawei/hbase:v2
+    imagePullPolicy: Always
+    name: hbase-region-a
+    ports:
+    - containerPort: 16020
+      protocol: TCP
+    - containerPort: 16030
+      protocol: TCP
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: hbase-region-b
+  name: hbase-region-b
+spec:
+  hostAliases:
+  - ip: "192.168.2.187"
+    hostnames:
+    - "k8s-master1"
+  containers:
+  - env:
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+    - name: HBASE_SERVER_TYPE
+      value: regionserver
+    - name: HDFS_PATH
+      value: mycluster
+    - name: ZOOKEEPER_SERVICE_LIST
+      value: zk-0.zk-headless.default.svc.cluster.local,zk-1.zk-headless.default.svc.cluster.local,zk-2.zk-headless.default.svc.cluster.local
+    - name: ZOOKEEPER_PORT
+      value: "2181"
+    - name: ZNODE_PARENT
+      value: hbase
+    image: 192.168.1.126/huawei/hbase:v2
+    imagePullPolicy: Always
+    name: hbase-region-b
+    ports:
+    - containerPort: 16020
+      protocol: TCP
+    - containerPort: 16030
+      protocol: TCP

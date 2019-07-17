@@ -1,0 +1,37 @@
+apiVersion: v1
+data:
+  logstash.conf: "input {\n    beats {\n        port => 5055\n    }\n}\n\nfilter{\n
+    \          ruby {\n                code => \"require 'digest/md5'\n                        event.remove('@timestamp')\n
+    \                       event.remove('@version')\n                        event.remove('message')\n
+    \                       event.remove('beat')\n                        event.remove('tags')\n
+    \                       event.set('data_dup',event.get('http_host') + event.get('request_uri'))\n
+    \                       event.set('data_up',event.get('request_uri'))\n                        event.set('md5_dup',Digest::MD5.hexdigest(event.get('http_host')
+    + event.get('request_uri')))\n                        event.set('md5_up',Digest::MD5.hexdigest(event.get('request_uri')))\"\n
+    \                }\n           if [request_uri] =~ '\\?' {\n                 ruby
+    {\n                       code => \"event.set('params',event.get('request_uri').split('?')[1])\n
+    \                               event.set('data_du',event.get('http_host') + event.get('request_uri').split('?')[0])\n
+    \                               event.set('data_u',event.get('request_uri').split('?')[0])\n
+    \                               event.set('md5_du',Digest::MD5.hexdigest(event.get('http_host')
+    + event.get('request_uri').split('?')[0]))\n                                event.set('md5_u',Digest::MD5.hexdigest(event.get('request_uri').split('?')[0]))\n
+    \                               \"\n                       }\n            }else{\n
+    \                ruby {\n                        code => \"event.set('params','')\n
+    \                                event.set('data_du',event.get('http_host') +
+    event.get('request_uri'))\n                                 event.set('data_u',event.get('request_uri'))\n
+    \                                event.set('md5_du',Digest::MD5.hexdigest(event.get('http_host')
+    + event.get('request_uri')))\n                                 event.set('md5_u',Digest::MD5.hexdigest(event.get('request_uri')))\"\n
+    \                      }\n            }\n\n            if [request] =~ \".gif\"
+    or [request] =~ \".jpg\" or [request] =~ \".png\" or [request] =~ \"favicon.ico\"
+    or [request] =~ \"js\" or [request] =~ \"css\" or [request] =~ \"common\" {\n
+    \                   drop {}\n            }\n            if [uri] =~ \"404.html\"
+    {\n                    drop {}\n            }\n            if [http_x_forwarded_for]
+    =~\"-\" {\n                     ruby {\n                       code => \"event.set('http_x_forwarded_for',(event.get('remote_addr')))\"\n
+    \                    }\n\n            }\n            if [http_x_forwarded_for]
+    =~\",\" {\n                    ruby {\n                         code => \"event.set('http_x_forwarded_for',(event.get('http_x_forwarded_for')).split(',')[0])\"\n
+    \                    }\n            }\n           \n}\n\noutput {\n    kafka{\n
+    \               topic_id => \"bigdata-log-analysis\"\n                bootstrap_servers
+    => \"kafka-broker:9092\"\n                batch_size => 5\n                codec
+    => json\n        }\n\n}\n\n"
+kind: ConfigMap
+metadata:
+  name: logstash-conf
+  namespace: default

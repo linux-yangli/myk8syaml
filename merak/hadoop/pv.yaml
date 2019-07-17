@@ -1,0 +1,41 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: datanode
+provisioner: example.com/nfs
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: namenode
+provisioner: example.com/nfs
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+    name: "datanode-1"
+spec:
+    capacity:
+        storage: 2000Gi
+    accessModes:
+        - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Recycle
+    storageClassName: datanode
+    nfs:
+        path: /data/hadoop/datanode-1
+        server: 192.168.2.187
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+    name: "namenode-1"
+spec:
+    capacity:
+        storage: 500Gi
+    accessModes:
+        - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Recycle
+    storageClassName: namenode
+    nfs:
+        path: /data/hadoop/namenode1
+        server: 192.168.2.187

@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+    name: zk-pv-01
+spec:
+    capacity:
+        storage: 100Gi
+    accessModes:
+        - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Retain
+    storageClassName: zk
+    nfs:
+        path: /data/zookeeper/zk1
+        server: 192.168.2.187
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+    name: zk-pv-02
+spec:
+    capacity:
+        storage: 100Gi
+    accessModes:
+        - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Retain
+    storageClassName: zk
+    nfs:
+        path: /data/zookeeper/zk2
+        server: 192.168.2.187
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+    name: zk-pv-03
+spec:
+    capacity:
+        storage: 100Gi
+    accessModes:
+        - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Retain
+    storageClassName: zk
+    nfs:
+        path: /data/zookeeper/zk3
+        server: 192.168.2.187

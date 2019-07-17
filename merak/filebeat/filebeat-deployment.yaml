@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: p-filebeat
+spec:
+  replicas: 1
+  selector:
+    name: p-filebeat
+  template:
+    metadata:
+      labels:
+        name: p-filebeat
+    spec:
+      containers:
+        - name: p-filebeat
+          image: 192.168.1.126/huawei/filebeat:5.6.15
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5055
+          volumeMounts:
+          - name: config-volume
+            mountPath: /etc/filebeat/
+      volumes:
+        - name: config-volume
+          configMap:
+            name: filebeat-conf

@@ -1,0 +1,21 @@
+apiVersion: v1
+data:
+  logstash.conf: "input {\n    kafka{\n    bootstrap_servers => \"kafka-broker:9092\"\n
+    \   topics => \"bigdata-log-analysis\"\n    consumer_threads => 1\n    group_id
+    => \"bigdata-log-analysis-to-hdfs\"\n    decorate_events => true\n    codec =>
+    \"json\"\n    auto_offset_reset => \"latest\"\n    #reset_beginning => \"true\"\n\n}\n}\n\n\n\nfilter
+    {\n      if ![time_local] {\n      drop {}\n      }\n\n       ruby{ \n           #code
+    => \"event.set('@timestamp', event.get('@timestamp').time.localtime + 8*60*60)\"
+    \  \n           code => \"require 'date'\n                    event.set('log_time',DateTime.strptime(event.get('time_local'),'%d/%b/%Y').strftime('%Y-%m-%d'))\n
+    \                   event.set('filename',DateTime.strptime(event.get('time_local'),'%d/%b/%Y:%H').hour)\"\n
+    \      }  \n\t   \n}\noutput {            \n    webhdfs {\n           host =>
+    \"k8s-master1\"        #hdfs的namenode地址    \n           port => 50070
+    \             #webhdfs端口\n           user => \"hdfs\"             #hdfs运行的用户啊，以这个用户的权限去写hdfs。\n
+    \          path => \"/data/logstash/%{softname}/NginxLog-%{log_time}/logstash-%{filename}.log\"\n
+    \          codec => json\n           flush_size => 500\n        idle_flush_time
+    => 10\n        retry_interval => 30\n       }\n    #stdout { codec => rubydebug
+    }\n   }\n\n"
+kind: ConfigMap
+metadata:
+  name: logstash-conf-hadoop
+  namespace: default
